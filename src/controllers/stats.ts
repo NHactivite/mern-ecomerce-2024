@@ -1,4 +1,4 @@
-import { nodeCache } from "../app.js";
+import { redis, redisTTL } from "../app.js";
 import { TryCatch } from "../middlewares/error.js";
 import { Order } from "../models/orders.js";
 import { Product } from "../models/product.js";
@@ -8,10 +8,13 @@ import { calculatePercentage, getChartData, getInventories } from "../utils/feat
 
 export const getDashboardStats=TryCatch(async(req,res,next)=>{
       
-         let stats={};
+         let stats;
          const key="adminStats"
-         if(nodeCache.has(key)) {
-            stats=JSON.parse(nodeCache.get(key)as string)
+
+         stats=await redis.get(key) 
+
+         if(stats) {
+            stats=JSON.parse(stats)
         } 
         else
         {
@@ -186,7 +189,7 @@ export const getDashboardStats=TryCatch(async(req,res,next)=>{
                modifiedTransaction
                   }
 
-                  nodeCache.set(key,JSON.stringify(stats));
+                  await redis.setex(key,redisTTL,JSON.stringify(stats));
         }
 
         return res.status(200).json({
@@ -201,9 +204,10 @@ export const getDashboardStats=TryCatch(async(req,res,next)=>{
 export const getPieChart=TryCatch(async(req,res,next)=>{
     let charts;
     const key="adminPieCharts"
-    if(nodeCache.has(key))
+    charts=await redis.get(key)
+    if(charts)
     {
-        charts=JSON.parse(nodeCache.get(key) as string)
+        charts=JSON.parse(charts)
     }
     else
     {
@@ -238,9 +242,9 @@ export const getPieChart=TryCatch(async(req,res,next)=>{
 
     const discount=allOrders.reduce((prev,order)=>prev +(order.discount || 0),0);
    
-    const productionCost=allOrders.reduce((prev,order)=>prev +(order.shippingCharges || 0),0);
+    const productionCost=allOrders.reduce((prev,order)=>prev +(30 ),0);
 
-    const burnt=allOrders.reduce((prev,order)=>prev +(order.tax || 0),0);
+    const burnt=allOrders.reduce((prev,order)=>prev +(order.shippingCharges || 0),0);
       
     const marketingCost=Math.round(grossIncome*(Number(process.env.MARKETING_COST)/100))
    
@@ -275,7 +279,7 @@ export const getPieChart=TryCatch(async(req,res,next)=>{
         }
 
 
-      nodeCache.set(key,JSON.stringify(charts));
+      await redis.setex(key,redisTTL,JSON.stringify(charts));
     }
     return res.status(200).json({
         success:true,
@@ -287,10 +291,10 @@ export const getPieChart=TryCatch(async(req,res,next)=>{
 export const getBarCharts=TryCatch(async(req,res,next)=>{
    let charts;
    const key="adminBarCharts";
-
-   if(nodeCache.has(key))
+   charts=await redis.get(key)
+   if(charts)
    {
-    charts=JSON.parse(nodeCache.get(key) as string)
+    charts=JSON.parse(charts)
    }
    else
    {
@@ -335,7 +339,7 @@ const [sixMonthProduct,sixMonthUser,twelveMonthOrder] = await Promise.all([
              orders:ordersCounts
     }
 
-    nodeCache.set(key,JSON.stringify(charts));
+    await redis.setex(key,redisTTL,JSON.stringify(charts));
    }
 return res.status(200).json({
     success:true,
@@ -348,10 +352,10 @@ return res.status(200).json({
 export const getLineCharts=TryCatch(async(req,res,next)=>{
     let charts;
     const key="adminLineCharts";
- 
-    if(nodeCache.has(key))
+    charts=await redis.get(key)
+    if(charts)
     {
-     charts=JSON.parse(nodeCache.get(key) as string)
+     charts=JSON.parse(charts)
     }
     else
     {
@@ -388,7 +392,7 @@ export const getLineCharts=TryCatch(async(req,res,next)=>{
               revenue
      }
  
-     nodeCache.set(key,JSON.stringify(charts));
+     await redis.setex(key,redisTTL,JSON.stringify(charts));
     }
  return res.status(200).json({
      success:true,

@@ -24,6 +24,10 @@ import mongoose from "mongoose";
             type:Number,
             required:true
         },
+        phnNo:{
+            type:Number,
+            required:true
+        },
      },
      userId:{
        type:String,
@@ -31,10 +35,6 @@ import mongoose from "mongoose";
        required:true
      },
      subtotal:{
-      type:Number,
-      required:true
-       },
-     tax:{
       type:Number,
       required:true
        },
@@ -59,7 +59,7 @@ import mongoose from "mongoose";
       orderItems:[
         {
           name:String,
-          photo:String,
+          photos:String,
           price:Number,
           quantity:Number,
           productId:{

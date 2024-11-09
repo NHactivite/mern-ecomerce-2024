@@ -1,12 +1,12 @@
 import express from "express";
-import { connectDB } from "./utils/features.js";
+import { connectDB, connectRedis } from "./utils/features.js";
 import { errorMiddleware } from "./middlewares/error.js";
 import NodeCache from "node-cache";
 import {config} from "dotenv";
 import morgan from "morgan";
  import cors from "cors"
  import { Cashfree } from "cashfree-pg";
-
+import {v2 as cloudinary} from "cloudinary"
 
 // importing Routes
 import userRoute from "./routes/user.js";
@@ -20,8 +20,10 @@ config({
     path:"./.env"
 })
 
-const port=process.env.PORT || 4000;
+const port=process.env.PORT || 3000;
 const mongoURI=process.env.MONGO_URI || "";
+const redisURI=process.env.REDIS_URL||""
+export const redisTTL=process.env.REDIS_TTL||60*60*4;
 // const stripeKey=process.env.STRIPE_KEY || "";
 
 Cashfree.XClientId = process.env.CLIENT_ID;
@@ -29,6 +31,12 @@ Cashfree.XClientSecret = process.env.CLIENT_SECRET;
 Cashfree.XEnvironment = Cashfree.Environment.SANDBOX;
 
 connectDB(mongoURI);
+export const redis=connectRedis(redisURI);
+cloudinary.config({
+    cloud_name:process.env.CLOUD_NAME,
+    api_key:process.env.CLOUD_API_KEY,
+    api_secret:process.env.CLOUD_API_SECRET
+})
 
 // export const stripe= new Stripe(stripeKey)
 export const nodeCache = new NodeCache();
@@ -77,5 +85,4 @@ app.use(errorMiddleware);
 
 app.listen(port,()=>{
     console.log("server working on",port);
-    
 });

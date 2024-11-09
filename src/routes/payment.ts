@@ -1,5 +1,5 @@
 import express from "express";
-import { allCoupons, applyDiscount,  deleteCoupon, newCoupon, paymentReq, paymentVerify } from "../controllers/payment.js";
+import { allCoupons, applyDiscount,  deleteCoupon, getCoupon, newCoupon, paymentReq, paymentVerify, updateCoupon } from "../controllers/payment.js";
 import { adminOnly } from "../middlewares/auth.js";
 
 const app=express.Router();
@@ -16,6 +16,6 @@ app.post("/verify",paymentVerify)
 
 app.get("/discount/:code",applyDiscount)
 
-app.get("/coupon/:id",deleteCoupon)
+app.route("/coupon/:id").get(adminOnly,getCoupon).delete(adminOnly,deleteCoupon ).put(adminOnly,updateCoupon)
 
 export default app;

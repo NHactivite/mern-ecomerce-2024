@@ -28,3 +28,7 @@ export const TryCatch=(func:ControllerType)=>(req:Request,res:Response,next:Next
 //     return Promise.resolve(func(req,res,next)).catch(next)
      
 // }
+
+
+
+

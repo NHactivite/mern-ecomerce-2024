@@ -1,8 +1,51 @@
-import mongoose, { Document } from "mongoose"
-import { invalidatesCacheProps, orderItemType } from "../types/types.js";
-import { nodeCache } from "../app.js";
+import mongoose, { Document } from "mongoose";
+import { nodeCache, redis } from "../app.js";
 import { Product } from "../models/product.js";
-import { Order } from "../models/orders.js";
+import { invalidatesCacheProps, orderItemType } from "../types/types.js";
+import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
+import {Redis} from "ioredis";
+
+const getBase64=(file:Express.Multer.File)=>`data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
+
+export const uploadToCloudnary=async(files:Express.Multer.File[])=>{
+    const promises=files.map(async(file)=>{
+           return new Promise<UploadApiResponse>(async(resolve,reject)=>{
+                 cloudinary.uploader.upload(getBase64(file),(error,result)=>{
+                       if(error) return reject(error)
+                       resolve(result!)
+                    
+                 }
+                )
+           })
+    })  
+    const result=await Promise.all(promises)
+    return result.map((i)=>({
+        public_id:i.public_id,
+        url:i.url
+    }))
+}
+
+
+export const connectRedis=(redisURI:string)=>{
+    const redis=new Redis(redisURI);
+    redis.on("connect",()=>console.log("Redis Connected"))
+    redis.on("error",(e)=>console.log(e))
+    return redis;
+}
+
+
+export const deleteFromCloudinary=async(publicIds:string[])=>{
+    const promises=publicIds.map(async(id)=>{
+        return new Promise<void>(async(resolve,reject)=>{
+              cloudinary.uploader.destroy(id,(error,result)=>{
+                    if(error) return reject(error)
+                    resolve(result!)
+                 
+              }
+             )
+        })
+ }) 
+} 
 
 export  const connectDB=(uri:string)=>{
         mongoose.connect(uri,{
@@ -12,7 +55,16 @@ export  const connectDB=(uri:string)=>{
 };
 
 
-export const invalidatesCache=({product,order,admin,userId,orderId,productId}:invalidatesCacheProps)=>{
+export const invalidatesCache=async({product,order,admin,userId,orderId,productId,review,wish}:invalidatesCacheProps)=>{
+
+    if(review){
+        const key=`reviews-${productId}`
+        await redis.del(key)
+    }
+    if(wish){
+        const key=`wish-${userId}`;
+        await redis.del(key)
+    }
    
     if(product)
     { 
@@ -22,17 +74,17 @@ export const invalidatesCache=({product,order,admin,userId,orderId,productId}:in
 
         if(typeof productId==="object") productId.forEach(i=> productKeys.push(`product-${i}`))
 
-        nodeCache.del(productKeys)
+        await redis.del(productKeys)
     }
     if(order)
     {
             const ordersKeys:string[]=["allOrders",`myOrders-${userId}`,`order-${orderId}`];
             
-            nodeCache.del(ordersKeys)
+            await redis.del(ordersKeys)
     }
     if(admin)
     {
-         nodeCache.del(["adminStats","adminPieCharts","adminBarCharts","adminLineCharts"])
+        await redis.del(["adminStats","adminPieCharts","adminBarCharts","adminLineCharts"])
     }
 
 }

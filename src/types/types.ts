@@ -18,6 +18,13 @@ export interface NewProductRequestBody{
     category:string;
     price:number;
     stock:number;
+    description: string;
+    brand:string;
+ os:string;
+ ram:number;
+ cpu_model:string;
+ cpu_speed:string;
+    
 }
 
 export type ControllerType= (
@@ -46,7 +53,8 @@ export type ControllerType= (
 
 
 export type invalidatesCacheProps={
-    
+    review?:boolean,
+    wish?:boolean
      product?:boolean,
      order?:boolean,
      admin?:boolean,
@@ -68,6 +76,7 @@ export type shippingInfoType={
     state:string;
     country:string;
     pinCode:number;
+    phnNo:number;
 }
 
 
@@ -76,7 +85,6 @@ export interface NewOrderRequestBody{
     shippingInfo:shippingInfoType;
     userId:string;
     subtotal:number;
-    tax:number;
     shippingCharges:number;
     discount:number;
     total:number;
