@@ -53,6 +53,7 @@ export type ControllerType= (
 
 
 export type invalidatesCacheProps={
+    Brands?:boolean,
     review?:boolean,
     wish?:boolean
      product?:boolean,

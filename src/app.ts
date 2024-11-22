@@ -1,7 +1,6 @@
 import express from "express";
 import { connectDB, connectRedis } from "./utils/features.js";
 import { errorMiddleware } from "./middlewares/error.js";
-import NodeCache from "node-cache";
 import {config} from "dotenv";
 import morgan from "morgan";
  import cors from "cors"
@@ -38,8 +37,6 @@ cloudinary.config({
     api_secret:process.env.CLOUD_API_SECRET
 })
 
-// export const stripe= new Stripe(stripeKey)
-export const nodeCache = new NodeCache();
 
  // use to cache data
 

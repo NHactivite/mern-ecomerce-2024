@@ -40,7 +40,7 @@ export const newProduct = TryCatch(
       cpu_speed
     });
 
-   await invalidatesCache({product:true,admin:true});
+   await invalidatesCache({product:true,admin:true,Brands:true});
 
     return res.status(201).json({
       success: true,

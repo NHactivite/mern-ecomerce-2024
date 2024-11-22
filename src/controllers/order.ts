@@ -123,7 +123,7 @@ export const newOrder=TryCatch(async(req:Request<{},{},NewOrderRequestBody>,res,
 
    await reduceStock(orderItems);
 
-  await invalidatesCache({product:true,order:true,admin:true,userId:userId,productId:order.orderItems.map(i=>String(i.productId))});
+  await invalidatesCache({product:true,order:true,admin:true,userId:userId,productId:order.orderItems.map(i=>String(i.productId)),Brands:true});
 
    return res.status(201).json({
     success:true,

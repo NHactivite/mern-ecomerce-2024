@@ -1,5 +1,5 @@
 import mongoose, { Document } from "mongoose";
-import { nodeCache, redis } from "../app.js";
+import {  redis } from "../app.js";
 import { Product } from "../models/product.js";
 import { invalidatesCacheProps, orderItemType } from "../types/types.js";
 import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
@@ -55,10 +55,14 @@ export  const connectDB=(uri:string)=>{
 };
 
 
-export const invalidatesCache=async({product,order,admin,userId,orderId,productId,review,wish}:invalidatesCacheProps)=>{
+export const invalidatesCache=async({product,Brands,order,admin,userId,orderId,productId,review,wish}:invalidatesCacheProps)=>{
 
     if(review){
         const key=`reviews-${productId}`
+        await redis.del(key)
+    }
+    if(Brands){
+        const key=`Brands`
         await redis.del(key)
     }
     if(wish){
